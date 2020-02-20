@@ -1,0 +1,62 @@
+.headtop {
+  height: 110px;
+  line-height: 100px;
+  border-bottom: 1px solid #ddd;
+  overflow: hidden;
+}
+.headtop .a {
+  margin-left: 30px;
+}
+.headtop .left {
+  font-size: 18px;
+  font-weight: bold;
+}
+.headtop .left .a {
+  padding: 10px;
+  color: #000;
+}
+.headtop .input {
+  width: 304px;
+  height: 34px;
+  border: 2px solid #00A4FF;
+  margin: 35px 30px 0 30px;
+}
+.headtop .input input {
+  width: 250px;
+  height: 30px;
+  border: 0;
+  line-height: 30px;
+  padding-left: 10px;
+}
+.headtop .input button {
+  width: 50px;
+  height: 30px;
+  line-height: 30px;
+  color: #fff;
+  font-size: 15px;
+  border: 0;
+  background-color: #00A4FF;
+}
+.headtop .right a {
+  color: #666;
+  font-size: 14px;
+  margin-left: 25px;
+}
+.headtop .right .signout {
+  color: #000;
+}
+/*
+ * colors variables
+ */
+.footer {
+  width: 100%;
+  background: #fff;
+  margin-top: 20px;
+  padding: 40px 0;
+  line-height: 260%;
+  font-size: 14px;
+}
+.footer .dl dt {
+  font-size: 16px;
+  font-weight: bold;
+}
