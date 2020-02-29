@@ -161,3 +161,6 @@
     left:47%;
     z-index: 999;
   }
+  p{
+    margin-bottom: 0;
+  }

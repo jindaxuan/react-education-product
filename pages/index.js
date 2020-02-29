@@ -1,127 +1,271 @@
-import React from 'react'
+import css from './index.less'
+import fetchHelper from '../kits/fetch'
+import { Carousel, Menu, Icon, Spin, Row, Col } from 'antd'
+// 导入next路由标签Link
 import Link from 'next/link'
-import Head from 'next/head'  // 在head中通过link引入antd css样式
-// import '../static/css/site.less'    //不使用这种方法
-import css from '../static/css/site.less'
-
-import {Button} from 'antd'
-// 引入高阶函数
-import {connect} from "react-redux";
-
-// 1导入fetchHelper函数 
-import fetchHelper from '../kits/fetch.js'
-
-
-class index extends React.Component{
-
-//   // 2在组件中定义getInitialProps 这个方法只会在NodeJS服务器执行 
-// static async getInitialProps(){ 
-//   let result = await fetchHelper
-//           .get('/mock') 
-//       // 默认将data数据绑定到当前组件的props中，将来在render函数中可以通过this.props.data就可 以获取数据了
-//       console.log(result.data.info.information)
-//   return { data:result.data.info.information} 
-//   }
-
-render(){
-return (
-  <div>
-    <Head>
-      <title>大煊首页</title>
-    </Head>
-    {/* 人生可真是寂寞如雪{this.props.pageProps.data} */}
-    <Link href={{pathname:'/home'}}>
-      <Button type="primary" icon="search">搜索</Button>
-    </Link>
-    <div className='hero'>
-      <h1 className={css.title} style={{color:this.props.testReducer.color}}>Welcome to Next.js!</h1>
-      
-      <p className='description'>
-        To get started, edit <code>pages/index.js</code> and save to reload.
-      </p>
-
-      <div className='row'>
-        <Link href='https://github.com/zeit/next.js#setup'>
-          <a className='card'>
-            <h3>Getting Started &rarr;</h3>
-            <p>Learn more about Next.js on GitHub and in their examples.</p>
-          </a>
-        </Link>
-        <Link href='https://github.com/zeit/next.js/tree/master/examples'>
-          <a className='card'>
-            <h3>Examples &rarr;</h3>
-            <p>Find other example boilerplates on the Next.js GitHub.</p>
-          </a>
-        </Link>
-        <Link href='https://github.com/zeit/next.js'>
-          <a className='card'>
-            <h3>Create Next App &rarr;</h3>
-            <p>Was this tool helpful? Let us know how we can improve it!</p>
-          </a>
-        </Link>
-      </div>
-    </div>
-
-    <style jsx>{`
-      .hero {
-        width: 100%;
-        color: #333;
-      }
-      .title {
-        margin: 0;
-        width: 100%;
-        padding-top: 80px;
-        line-height: 1.15;
-        font-size: 48px;
-      }
-      .title,
-      .description {
-        text-align: center;
-      }
-      .row {
-        max-width: 880px;
-        margin: 80px auto 40px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-      }
-      .card {
-        padding: 18px 18px 24px;
-        width: 220px;
-        text-align: left;
-        text-decoration: none;
-        color: #434343;
-        border: 1px solid #9b9b9b;
-      }
-      .card:hover {
-        border-color: #067df7;
-      }
-      .card h3 {
-        margin: 0;
-        color: #067df7;
-        font-size: 18px;
-      }
-      .card p {
-        margin: 0;
-        padding: 12px 0 0;
-        font-size: 13px;
-        color: #333;
-      }
-    `}</style>
-  </div>
-)
-    }
-  }
-  const mapStateToProps = (state)=>{
+const { SubMenu, ItemGroup } = Menu
+export default class extends React.Component {
+  static async getInitialProps() {
+    // 获取数据的两种方法，一种是写在这里，另外一种是写在生命周期中
+    let list = await fetchHelper.get('/nc/course/home/gettopdata')
+    // 通过return{}默认绑定到当前组件的dprops对象中，在render中就可以通过this.props.sliderlist
     return {
-      ...state
+      sliderlist: list.message.sliderlist
     }
   }
-export default connect(mapStateToProps,null)(index)
 
-// 继承redux-persist实现store持久化到localStorage的步骤
-//  1.导入相关的方法和storage对象
-// 2.配置storage对象的key
-// 3.配置persistReducer将rootReducer重新包装后返回新对象pReducer
-// 4.createStore(pReducer)创建新的store对象
-// 5。（export）利用persistStore方法传入store对象创建出新的persistot对象，将来在_app.js中被PersistGate组件使用
+  state = {
+    catelist: null,
+    toplist: null, // 精品课程数据
+    types: null, // 课程分类，热门，初级，中级，高级
+    cateCourseList: null, // 分类课程数据
+    isLoading: false // 是否加载中
+  }
+
+  // 生命周期函数
+  componentDidMount() {
+    //1.0 获取轮播数据和分类菜单数据(fetch发出请求获取数据)
+    this.getCateAndSlidImg()
+    //2.0 获取首页精品课程数据(fetch发出请求获取数据)
+    this.getTopLessonList()
+    //3.0 按照分类分组获取课程数据(fetch发出请求获取数据)
+    this.getCourseList()
+  }
+  getTopLessonList() {
+    //1.0 获取首页精品课程数据
+    fetchHelper.get(`/nc/course/home/getTopCourseList`).then(res => {
+      // console.log(res)
+      this.setState({
+        toplist: res.message
+      })
+    })
+  }
+
+  getCateAndSlidImg() {
+    //1.0 获取轮播数据和分类菜单数据
+    this.setState({ isloading: true })
+    fetchHelper.get(`/nc/course/home/gettopdata`).then(res => {
+      // console.log(res)
+      // console.log(res.message.catelist)
+      this.setState({
+        catelist: res.message.catelist,
+        isloading: false
+      })
+    })
+  }
+
+  getCourseList() {
+    //1.0 按照分类分组获取课程数据
+    fetchHelper.get(`/nc/course/home/getcourselist`).then(res => {
+      // console.log(res)
+      this.setState({
+        types: res.message.types,
+        cateCourseList: res.message.datas
+      })
+    })
+  }
+
+  render() {
+    return (
+      <div>
+        <Spin
+          className="loading"
+          tip="正在努力加载中..."
+          spinning={this.state.isLoading}
+        ></Spin>
+        <div className={css.banner_roll}>
+          {/* 1.0实现轮播图-begin 使用antd中的走马灯组件：Carousel */}
+          {/* 注意这里map()(),这是map函数如果不用return就要加括号或者不加{}，如果你要加{}，就要写return，这里没有写return，故。。。 */}
+          {/* ant-design中轮播图有很多的参数，可以设置产生很多效果 */}
+          <Carousel autoplay lazyLoad autoplaySpeed={5000} speed={300}>
+            {this.props.sliderlist &&
+              this.props.sliderlist.map((item, i) => (
+                <div key={i}>
+                  <img src={item.img_url} />
+                </div>
+              ))}
+          </Carousel>
+          {/* 1.0实现轮播图-end */}
+          {/* 2.0 左边分类菜单数据-begin 使用antd中的Menu组件 */}
+          <div className={css.catelist}>
+            <Menu style={{ width: 256 }} mode="vertical">
+              {this.state.catelist &&
+                this.state.catelist.map((item, i) => (
+                  <SubMenu key={item.id} title={item.title}>
+                    {item.subcates.map((item2, i2) => (
+                      <ItemGroup key={item2.id} title={item2.title}>
+                        {item2.subcates.map((item3, i3) => (
+                          <Menu.Item key={item3.id}>{item3.title}</Menu.Item>
+                        ))}
+                      </ItemGroup>
+                    ))}
+                  </SubMenu>
+                ))}
+            </Menu>
+          </div>
+          {/* 2.0 左边分类菜单数据-end */}
+        </div>
+        <br />
+        <div className={css.toplesson}>
+          {/* 3.0 精品课程布局-begin */}
+          <Row>
+            <Col span="12">
+              <h2>精品课程</h2>
+            </Col>
+            <Col offset={10} span="2" className={css.typesli}>
+              <a href="#">查看全部</a>
+            </Col>
+          </Row>
+          <br />
+          <ul>
+            {this.state.toplist &&
+              this.state.toplist.map((item, i) => (
+                <Link key={item.id} href={'/course/detail?cid='+item.id}>
+                  <li className={css.recom_item}>
+                    <a href="#">
+                      <p>
+                        <img className={css.img} src={item.img_url} />
+                        <span className={css.lab}>HOT</span>
+                      </p>
+                      <ul>
+                        <li style={{ height: 36 }}>{item.title}</li>
+                        <li className={css.li2}>
+                          <span>{item.lesson_level}</span>
+                          <em>.</em>
+                          {item.click}人在学习
+                        </li>
+                      </ul>
+                    </a>
+                  </li>
+                </Link>
+              ))}
+          </ul>
+          {/* 3.0 精品课程布局-end */}
+          {/* 4.0 分类分组课程数据-begin */}
+          <br /> <br />
+          {this.state.cateCourseList &&
+            this.state.cateCourseList.map((item, i) => (
+              <div key={i}>
+                <br />
+                <Row type="flex" align="bottom">
+                  <Col span="8">
+                    <h2>{item.title}</h2>
+                  </Col>
+                  <Col span="8" className={css.typesli}>
+                    <ul>
+                      <li>
+                        <a className={css.active} href="#">
+                          热门
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#">初级</a>
+                      </li>
+                      <li>
+                        <a href="#">中级</a>
+                      </li>
+                      <li>
+                        <a href="#">高级</a>
+                      </li>
+                    </ul>
+                  </Col>
+                  <Col className={css.typesli} span="2" offset="6">
+                    <a href="#">查看全部</a>
+                  </Col>
+                </Row>
+
+                <br />
+                <br />
+                <Row type="flex" align="top">
+                  <Col span="5">
+                    {/* 左边图片 */}
+                    <img src={item.img_url} width="228" height="392" alt="" />
+                  </Col>
+
+                  <Col span="19">
+                    <Row>
+                      {/* 上边图片 */}
+                      <Col span="24">
+                        <img
+                          src={item.img1_url}
+                          width="957"
+                          height="100"
+                          alt=""
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col span="24">
+                        <ul>
+                          {item.courseList.map((item1, i) => (
+                            <li key={i} className={css.recom_item}>
+                              <a href="#">
+                                <p>
+                                  <img
+                                    src={item1.img_url}
+                                    width="100%"
+                                    height="160"
+                                    alt=""
+                                  />
+                                  <span className={css.lab}>HOT</span>
+                                </p>
+                                <ul>
+                                  <li style={{ height: 36 }}>{item1.title} </li>
+                                  <li className={css.li2}>
+                                    <span>{item1.lesson_level}</span>{' '}
+                                    <em> · </em> {item1.click}人在学习
+                                  </li>
+                                </ul>
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </Col>
+                    </Row>
+                  </Col>
+                </Row>
+              </div>
+            ))}
+          {/* 4.0 分类分组课程数据-end */}
+        </div>
+        <style>{`
+              /*首页轮播和分类begin*/ 
+                   /*覆盖antd轮播图小图标的位置，只有在当前组件有效*/
+                  .slick-dots {
+                      position: relative !important;
+                      bottom:40px !important;
+                  }
+                  /*重写antd一级菜单样式*/ 
+                  .ant-menu{
+                      background: rgba(0, 0, 0, 0.2) !important;
+                      color:#fff;
+                  }
+                  /*重写二级菜单样式*/ 
+                  .ant-menu-sub{
+                      background: #fff !important;
+                      color:#000;
+                  }
+                  .ant-menu-submenu-arrow{
+                      color:#fff !important;                  
+                  }
+                  .ant-menu-submenu-arrow::after, .ant-menu-submenu-arrow::before{                   
+                      background-image:none !important;
+                  }
+                  .ant-menu-inline, .ant-menu-vertical, .ant-menu-vertical-left{
+                      border-right:none !important;
+                  }
+                  .ant-menu-item-group-list{
+                      width:500px
+                  }
+                  .ant-menu-item-group-list li{
+                      display:inline-block !important;
+                  }
+                  p{
+                    margin-bottom:none;
+                  }
+                  /*首页轮播和分类end*/ 
+              `}</style>
+      </div>
+    )
+  }
+}
