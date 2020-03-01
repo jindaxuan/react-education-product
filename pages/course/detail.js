@@ -1,9 +1,13 @@
 // 实现页面获取url传入参数值步骤1：导入withRouter方法
 import { withRouter } from 'next/router'
-import { Icon, Row, Col, Tabs } from 'antd'
+import { Icon, Row, Col, Tabs,Collapse } from 'antd'
 import css from './detail.less'
 const { TabPane } = Tabs
+const Panel = Collapse.Panel;
 import fetchHelper from '../../kits/fetch'
+import { Router } from 'next/dist/lib/router';
+let seciontArr = []
+
 
 class detail extends React.Component {
   // 详情  -课程ID= {this.props.router.query.cid}
@@ -26,6 +30,64 @@ class detail extends React.Component {
       blist: result.message.BreadCrumbs,
       courseInfo: result.message.CourseDetial
     }
+  }
+  // 生命周期方法
+  componentWillMount() {
+    // 根据课程id获取大纲数据
+    this.getSectionList()
+  }
+
+  // 根据课程id获取大纲数据
+  getSectionList() {
+    let url = `/nc/course/courseDetial/getOutline/${this.props.router.query.cid}`
+    fetchHelper.get(url).then(json => {
+      if (json.status == 1) {
+        message.error(json.message)
+      } else {
+        // 成功就要将数据赋值给state中的slist
+        this.setState({
+          // slist中的数据既包括章节数据(parnet_id =0）也包括小节数据(parnet_id >0)
+          slist: json.message
+        })
+
+        // 获取到当前课程一级大纲数据的数据，初始化到seciontArr
+        if (json.message && json.message.length > 0) {
+          let count = json.message.filter(item => item.parent_id == 0).length
+          // 初始化到seciontArr
+          for (var i = 0; i < count; i++) {
+            seciontArr.push(i.toString())
+          }
+        }
+      }
+    })
+  }
+
+  intoShopCar(){
+    fetchHelper.post('/ch/shop/postshopcar',{goods_id:this.props.router.query.id})
+      .then(json =>{
+        if(json.status === 2){
+          message.warn('you are not login',1,()=>{
+            Router.push({pathname:'/account/login'})
+          })
+          return
+        }
+        // 异常处理
+        if(json.status === 1){
+          message.error(json.message,1);
+          return
+        }
+        message.succcess(json.message.text,1,() =>{
+          // change the shopcat's count
+          // use shopCarCountReducer.js 's shopCarReducer methods,and then this methods must use dispatch
+          // so must use detail component by connnect package ,you can use dispatch
+          let totalCount = json.message.count
+          this.props.onChangeShopCarCount(totalCount)
+        })
+      })
+  }
+
+  state = {
+    slist: null
   }
 
   render() {
@@ -57,7 +119,7 @@ class detail extends React.Component {
                 </span>
               </p>
               <p className={css.info}>
-                <a href="#">加入购物车</a>
+                <a onClick={this.intoShopCar.bind(this)}>加入购物车</a>
                 <span>
                   <em>难度等级</em>
                   {this.props.courseInfo.lesson_level}
@@ -130,7 +192,31 @@ class detail extends React.Component {
                     }
                     key="2"
                   >
-                    <div className={css.tabp}> 课程大纲</div>
+                    <div className={css.tabp}>
+                      <Collapse defaultActiveKey={seciontArr}>
+                        {/* Panel其实是要通过slist中的parnent_id =0 的数据来生成 */}
+                        {this.state.slist &&
+                          this.state.slist
+                            .filter(item => item.parent_id == 0)
+                            .map((item, index) => (
+                              <Panel header={item.section_name} key={index}>
+                                <Row className={css.sesionUl}>
+                                  {/* Col其实是用通过slist中的当前这一个章节下面的小节数据来生成的 */}
+                                  {this.state.slist &&
+                                    this.state.slist
+                                      .filter(
+                                        item1 => item1.parent_id == item.id
+                                      )
+                                      .map((item2, index2) => (
+                                        <Col span="12" key={index2}>
+                                          <a href="#">{item2.section_name}</a>
+                                        </Col>
+                                      ))}
+                                </Row>
+                              </Panel>
+                            ))}
+                      </Collapse>
+                    </div>
                   </TabPane>
                   <TabPane
                     tab={
@@ -153,13 +239,11 @@ class detail extends React.Component {
                         </Col>
                         <Col span="21">
                           <Row>
-                            {' '}
                             <Col span="24">
                               {this.props.courseInfo.teacher_name}
                             </Col>
                           </Row>
                           <Row>
-                            {' '}
                             <Col span="24" style={{ fontWeight: 'bold' }}>
                               {this.props.courseInfo.teacher_desc}
                             </Col>
@@ -179,7 +263,9 @@ class detail extends React.Component {
                   >
                     <div
                       className={css.tabp}
-                      dangerouslySetInnerHTML={{ __html: '<h1>常见问题</h1>' }}
+                      dangerouslySetInnerHTML={{
+                        __html: this.props.courseInfo.common_question
+                      }}
                     ></div>
                   </TabPane>
                 </Tabs>
@@ -218,4 +304,15 @@ class detail extends React.Component {
 // 就能够自动的将url参入的参数附加到 this.props.router.query对象中
 // query对象中的属性名称和url传入参数的key同名
 // 例如： url: /course/detail?cid=102  在render函数中可以通过 this.props.router.query.cid获取到102这个值
-export default withRouter(detail)
+
+// connect函数接收两个参数分别将redux中定义好的reducer进行绑定
+const mapDispatchToProps = (dispatch) =>{
+  return {
+    // 定义一个方法，count就是当前用户购买的总商品数量
+    onChangeShopCarCount:(count) =>{
+      dispatch({type:'CHANGE_SHOP_COUNT',count:count})
+    }
+  }
+}
+
+export default connect(null,mapDispatchToProps)(withRouter(detail))
