@@ -4,12 +4,13 @@ import { Icon, Badge, message } from 'antd'
 import { connect } from 'react-redux'
 import fetch from '../../kits/fetch'
 import { getUser, removeUser } from '../../kits/storageHelper'
+import Link from 'next/link'
 
 class head extends React.Component {
   // 登出系统逻辑
   logOut() {
     fetch.get('/nc/common/account/logout').then(res => {
-      console.log(res)
+      // console.log(res)
       if (res.status === 1) {
         message.error(res.message.text, 1)
       } else {
@@ -22,60 +23,64 @@ class head extends React.Component {
   }
   render() {
     let userInfo = getUser()
-    console.log(userInfo)
+    // console.log(userInfo)
     return (
       <header className={css.headtop + ' w'}>
-        <a href="" className="fl">
-          <img src="/static/img/asset-logoIco.png" alt="" />
+        <a href='' className='fl'>
+          <img src='/static/img/asset-logoIco.png' alt='' />
         </a>
         <div className={css.left + ' fl'}>
-          <a className={css.a} href="">
+          <a className={css.a} href=''>
             首页
           </a>
-          <a className={css.a} href="">
+          <a className={css.a} href=''>
             课程
           </a>
-          <a className={css.a} href="">
+          <a className={css.a} href=''>
             职业规划
           </a>
         </div>
         <div className={css.input + ' fl'}>
-          <input type="text" className="fl" placeholder="输入查询关键字" />
-          <button className="fr">搜索</button>
+          <input type='text' className='fl' placeholder='输入查询关键字' />
+          <button className='fr'>搜索</button>
         </div>
         <div className={css.right + ' fr'}>
           <div className={css.signin}>
             {/* <!-- 未登录 -->*/}
             {/* <a onClick={()=>this.props.onChangeColor('blue')}>蓝色</a> */}
             {/* <a onClick={()=>this.props.onChangeColor('red')}>红色</a> */}
+            {this.props.shopCarCountReducer.count}
+            <Link href={{pathname:'/car/carlist'}}>
+              <Badge count={this.props.shopCarCountReducer.count}>
+                <Icon style={{cursor:'pointer'}} type="shopping-cart" className={css.Icon} />
+              </Badge>
+            </Link>
             {!userInfo.uid ? (
               <span>
                 <a
-                  href="#"
+                  href='#'
                   onClick={() => {
                     window.location = '/account/login'
-                  }}
-                >
+                  }}>
                   登录{' '}
                 </a>{' '}
-                <span> |</span> <a href="#"> 注册</a>
+                <span> |</span> <a href='#'> 注册</a>
               </span>
             ) : (
               <span>
-                <a href="#">
-                  <Icon type="bell" theme="twoTone" />
+                <a href='#'>
+                  <Icon type='bell' theme='twoTone' />
                   个人中心
                 </a>
-                <a href="#">
-                  <img src="/static/img/asset-myImg.jpg" alt="" />
+                <a href='#'>
+                  <img src='/static/img/asset-myImg.jpg' alt='' />
                   {userInfo.nick_name}
                 </a>
                 <a
-                  href="#"
+                  href='#'
                   onClick={() => {
                     this.logOut()
-                  }}
-                >
+                  }}>
                   退出
                 </a>
               </span>
@@ -97,10 +102,15 @@ connect有两个参数
 const mapDispatchToProps = dispatch => {
   return {
     onChangeColor: color => {
-      console.log(color)
+      // console.log(color)
       // 利用dispatch去更新store中state的color属性（实际上是操作testReducer中的state中的color属性）
       dispatch({ type: 'CHANGE_COLOR', color })
     }
   }
 }
-export default connect(null, mapDispatchToProps)(head)
+const mapStateToProps = (state) =>{
+  return {
+    ...state
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(head)

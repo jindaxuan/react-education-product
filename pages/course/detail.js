@@ -1,11 +1,14 @@
 // 实现页面获取url传入参数值步骤1：导入withRouter方法
 import { withRouter } from 'next/router'
-import { Icon, Row, Col, Tabs,Collapse } from 'antd'
+import Router from 'next/router'
+
+import { Icon, Row, Col, Tabs,Collapse,message } from 'antd'
+import { connect } from 'react-redux'
+
 import css from './detail.less'
 const { TabPane } = Tabs
 const Panel = Collapse.Panel;
 import fetchHelper from '../../kits/fetch'
-import { Router } from 'next/dist/lib/router';
 let seciontArr = []
 
 
@@ -24,7 +27,7 @@ class detail extends React.Component {
     let url = `/nc/course/courseDetial/getCourseDetial/${cid}`
 
     let result = await fetchHelper.get(url)
-    console.log(result)
+    // console.log(result)
     return {
       // 面包屑导航
       blist: result.message.BreadCrumbs,
@@ -63,7 +66,8 @@ class detail extends React.Component {
   }
 
   intoShopCar(){
-    fetchHelper.post('/ch/shop/postshopcar',{goods_id:this.props.router.query.id})
+    // return
+    fetchHelper.post('/ch/shop/postshopcar',{goods_id:this.props.router.query.cid})
       .then(json =>{
         if(json.status === 2){
           message.warn('you are not login',1,()=>{
@@ -76,7 +80,7 @@ class detail extends React.Component {
           message.error(json.message,1);
           return
         }
-        message.succcess(json.message.text,1,() =>{
+        message.success(json.message.text,1,() =>{
           // change the shopcat's count
           // use shopCarCountReducer.js 's shopCarReducer methods,and then this methods must use dispatch
           // so must use detail component by connnect package ,you can use dispatch
@@ -93,7 +97,6 @@ class detail extends React.Component {
   render() {
     return (
       <div style={{ minHeight: 800 }}>
-        {console.log(this.props)}
         {/* 1.0 课程详情banner部分-begin */}
         <div className={css.article_banner}>
           <div className={css.banner_bg}></div>
