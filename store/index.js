@@ -5,6 +5,7 @@ import {createStore,combineReducers} from "redux";
 import testReducer from '../reducers/testReducer.js'
 import shopCarCountReducer from '../reducers/shopCarCountReducer.js'
 import selectedReducer from '../reducers/selectedReducer.js'
+import orderReducer from '../reducers/orderReducer.js'
 
 // 继承redux-persist实现store持久化到localStorage的步骤
 //  1.导入相关的方法和storage对象
@@ -19,7 +20,7 @@ const config = {
 
 // 2利用rudex的combineReducers来编译成根reducer
 const rootReducer = combineReducers({
-  testReducer,shopCarCountReducer,selectedReducer
+  testReducer,shopCarCountReducer,selectedReducer,orderReducer
 });
 // 3.0.1 配置persistReducer将rootReducer重新包装后返回新对象pReducer
 const pReducer = persistReducer(config,rootReducer)

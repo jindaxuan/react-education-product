@@ -59,7 +59,7 @@ class login extends React.Component {
                                     {getFieldDecorator('user_name', {
                                         rules: [
                                             { required: true, message: '请输入用户名!' },
-                                            { pattern: /^1(3|4|5|7|8)\d{9}$/, message: '用户名必须符合手机格式!' }
+                                            // { pattern: /^1(3|4|5|7|8)\d{9}$/, message: '用户名必须符合手机格式!' }
                                     ],
                                     })(
                                         <Input prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />} auto-complete="off" placeholder="请输入用户名或者手机号" />
