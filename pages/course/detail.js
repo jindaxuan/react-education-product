@@ -2,15 +2,14 @@
 import { withRouter } from 'next/router'
 import Router from 'next/router'
 
-import { Icon, Row, Col, Tabs,Collapse,message } from 'antd'
+import { Icon, Row, Col, Tabs, Collapse, message } from 'antd'
 import { connect } from 'react-redux'
 
 import css from './detail.less'
 const { TabPane } = Tabs
-const Panel = Collapse.Panel;
+const Panel = Collapse.Panel
 import fetchHelper from '../../kits/fetch'
 let seciontArr = []
-
 
 class detail extends React.Component {
   // 详情  -课程ID= {this.props.router.query.cid}
@@ -36,8 +35,22 @@ class detail extends React.Component {
   }
   // 生命周期方法
   componentWillMount() {
+    // 获取到当前用户购买的课程列表
+    this.getmyCourseList()
     // 根据课程id获取大纲数据
     this.getSectionList()
+  }
+
+  getmyCourseList() {
+    fetchHelper.get(`/ch/mycenter/getMyCourseList`).then(json => {
+      if (json.status == 0) {
+        let clistnew = json.message.CourseList.filter(item => item.goods_id == this.props.router.query.cid)
+
+        this.setState({
+          isview: clistnew.length > 0
+        })
+      }
+    })
   }
 
   // 根据课程id获取大纲数据
@@ -65,33 +78,33 @@ class detail extends React.Component {
     })
   }
 
-  intoShopCar(){
+  intoShopCar() {
     // return
-    fetchHelper.post('/ch/shop/postshopcar',{goods_id:this.props.router.query.cid})
-      .then(json =>{
-        if(json.status === 2){
-          message.warn('you are not login',1,()=>{
-            Router.push({pathname:'/account/login'})
-          })
-          return
-        }
-        // 异常处理
-        if(json.status === 1){
-          message.error(json.message,1);
-          return
-        }
-        message.success(json.message.text,1,() =>{
-          // change the shopcat's count
-          // use shopCarCountReducer.js 's shopCarReducer methods,and then this methods must use dispatch
-          // so must use detail component by connnect package ,you can use dispatch
-          let totalCount = json.message.count
-          this.props.onChangeShopCarCount(totalCount)
+    fetchHelper.post('/ch/shop/postshopcar', { goods_id: this.props.router.query.cid }).then(json => {
+      if (json.status === 2) {
+        message.warn('you are not login', 1, () => {
+          Router.push({ pathname: '/account/login' })
         })
+        return
+      }
+      // 异常处理
+      if (json.status === 1) {
+        message.error(json.message, 1)
+        return
+      }
+      message.success(json.message.text, 1, () => {
+        // change the shopcat's count
+        // use shopCarCountReducer.js 's shopCarReducer methods,and then this methods must use dispatch
+        // so must use detail component by connnect package ,you can use dispatch
+        let totalCount = json.message.count
+        this.props.onChangeShopCarCount(totalCount)
       })
+    })
   }
 
   state = {
-    slist: null
+    slist: null,
+    isview:false
   }
 
   render() {
@@ -102,24 +115,11 @@ class detail extends React.Component {
           <div className={css.banner_bg}></div>
           <div className={css.banner_info}>
             <div className={css.banner_left}>
-              <p>
-                {this.props.blist &&
-                  this.props.blist.map((item, i) => (
-                    <span key={i}>
-                      {this.props.blist.length - 1 === i
-                        ? item.title
-                        : item.title + '\\'}
-                    </span>
-                  ))}
-              </p>
+              <p>{this.props.blist && this.props.blist.map((item, i) => <span key={i}>{this.props.blist.length - 1 === i ? item.title : item.title + '\\'}</span>)}</p>
               <p className={css.tit}>{this.props.courseInfo.title}</p>
               <p className={css.pic}>
-                <span className={css.new_pic}>
-                  特惠价格￥{this.props.courseInfo.sell_price}{' '}
-                </span>
-                <span className={css.old_pic}>
-                  原价￥{this.props.courseInfo.market_price}
-                </span>
+                <span className={css.new_pic}>特惠价格￥{this.props.courseInfo.sell_price} </span>
+                <span className={css.old_pic}>原价￥{this.props.courseInfo.market_price}</span>
               </p>
               <p className={css.info}>
                 <a onClick={this.intoShopCar.bind(this)}>加入购物车</a>
@@ -143,15 +143,15 @@ class detail extends React.Component {
             </div>
             <div className={css.banner_rit}>
               <p>
-                <img src="/static/img/widget-video.png" alt="" />{' '}
+                <img src='/static/img/widget-video.png' alt='' />{' '}
               </p>
               <p className={css.vid_act}>
                 <span>
-                  <Icon type="plus-square" theme="outlined" />
+                  <Icon type='plus-square' theme='outlined' />
                   收藏 23{' '}
                 </span>
                 <span>
-                  分享 <Icon type="share-alt" theme="outlined" />
+                  分享 <Icon type='share-alt' theme='outlined' />
                 </span>
               </p>
             </div>
@@ -163,18 +163,17 @@ class detail extends React.Component {
         {/* 2.0 课程详情、课程大纲、授课老师、常见问题-begin */}
         <div className={css.article_cont}>
           <Row>
-            <Col span="20">
+            <Col span='20'>
               <div className={css.tit_list}>
-                <Tabs defaultActiveKey="1">
+                <Tabs defaultActiveKey='1'>
                   <TabPane
                     tab={
                       <span>
-                        <Icon type="file-text" />
+                        <Icon type='file-text' />
                         课程详情
                       </span>
                     }
-                    key="1"
-                  >
+                    key='1'>
                     {/*
                       dangerouslySetInnerHTML = {{ __html:this.props.courseInfo.CourseDetial.content }}
                       可以实现html代码的渲染
@@ -183,18 +182,16 @@ class detail extends React.Component {
                       className={css.tabp}
                       dangerouslySetInnerHTML={{
                         __html: this.props.courseInfo.content
-                      }}
-                    ></div>
+                      }}></div>
                   </TabPane>
                   <TabPane
                     tab={
                       <span>
-                        <Icon type="bars" />
+                        <Icon type='bars' />
                         课程大纲
                       </span>
                     }
-                    key="2"
-                  >
+                    key='2'>
                     <div className={css.tabp}>
                       <Collapse defaultActiveKey={seciontArr}>
                         {/* Panel其实是要通过slist中的parnent_id =0 的数据来生成 */}
@@ -207,12 +204,29 @@ class detail extends React.Component {
                                   {/* Col其实是用通过slist中的当前这一个章节下面的小节数据来生成的 */}
                                   {this.state.slist &&
                                     this.state.slist
-                                      .filter(
-                                        item1 => item1.parent_id == item.id
-                                      )
+                                      .filter(item1 => item1.parent_id == item.id)
                                       .map((item2, index2) => (
-                                        <Col span="12" key={index2}>
-                                          <a href="#">{item2.section_name}</a>
+                                        <Col span='12' key={index2}>
+                                          {item2.is_free == 1 ? (
+                                            <span>
+                                              <a
+                                                onClick={() => {
+                                                  Router.push({ pathname: '/course/show', query: { sid: item2.id, cid: item2.goods_id } })
+                                                }}>
+                                                {item2.section_name}
+                                              </a>
+                                              <span style={{ color: 'red' }}>免费</span>
+                                            </span>
+                                          ) : this.state.isview ? (
+                                            <a
+                                              onClick={() => {
+                                                Router.push({ pathname: '/course/show', query: { sid: item2.id, cid: item2.goods_id } })
+                                              }}>
+                                              {item2.section_name}
+                                            </a>
+                                          ) : (
+                                            <span>{item2.section_name}</span>
+                                          )}
                                         </Col>
                                       ))}
                                 </Row>
@@ -224,30 +238,22 @@ class detail extends React.Component {
                   <TabPane
                     tab={
                       <span>
-                        <Icon type="usergroup-add" />
+                        <Icon type='usergroup-add' />
                         授课老师
                       </span>
                     }
-                    key="3"
-                  >
+                    key='3'>
                     <div className={css.tabp}>
                       <Row>
-                        <Col span="3">
-                          <img
-                            src={this.props.courseInfo.teacher_img}
-                            alt="讲师"
-                            width="120px"
-                            height="120px"
-                          />
+                        <Col span='3'>
+                          <img src={this.props.courseInfo.teacher_img} alt='讲师' width='120px' height='120px' />
                         </Col>
-                        <Col span="21">
+                        <Col span='21'>
                           <Row>
-                            <Col span="24">
-                              {this.props.courseInfo.teacher_name}
-                            </Col>
+                            <Col span='24'>{this.props.courseInfo.teacher_name}</Col>
                           </Row>
                           <Row>
-                            <Col span="24" style={{ fontWeight: 'bold' }}>
+                            <Col span='24' style={{ fontWeight: 'bold' }}>
                               {this.props.courseInfo.teacher_desc}
                             </Col>
                           </Row>
@@ -258,38 +264,33 @@ class detail extends React.Component {
                   <TabPane
                     tab={
                       <span>
-                        <Icon type="question-circle" />
+                        <Icon type='question-circle' />
                         常见问题
                       </span>
                     }
-                    key="4"
-                  >
+                    key='4'>
                     <div
                       className={css.tabp}
                       dangerouslySetInnerHTML={{
                         __html: this.props.courseInfo.common_question
-                      }}
-                    ></div>
+                      }}></div>
                   </TabPane>
                 </Tabs>
               </div>
             </Col>
 
-            <Col span="4">
+            <Col span='4'>
               <div className={css.tit_list}>
-                <Tabs defaultActiveKey="1">
+                <Tabs defaultActiveKey='1'>
                   <TabPane
                     tab={
                       <span>
-                        <Icon type="book" />
+                        <Icon type='book' />
                         学成在线云课堂
                       </span>
                     }
-                    key="1"
-                  >
-                    <p className={css.tabp}>
-                      学成在线整合线下优质课程和纯熟的教学经验，开展在线教育，突破空间、地域、时间、费用的限制，让优质教育资源平等化。
-                    </p>
+                    key='1'>
+                    <p className={css.tabp}>学成在线整合线下优质课程和纯熟的教学经验，开展在线教育，突破空间、地域、时间、费用的限制，让优质教育资源平等化。</p>
                   </TabPane>
                 </Tabs>
               </div>
@@ -309,13 +310,13 @@ class detail extends React.Component {
 // 例如： url: /course/detail?cid=102  在render函数中可以通过 this.props.router.query.cid获取到102这个值
 
 // connect函数接收两个参数分别将redux中定义好的reducer进行绑定
-const mapDispatchToProps = (dispatch) =>{
+const mapDispatchToProps = dispatch => {
   return {
     // 定义一个方法，count就是当前用户购买的总商品数量
-    onChangeShopCarCount:(count) =>{
-      dispatch({type:'CHANGE_SHOP_COUNT',count:count})
+    onChangeShopCarCount: count => {
+      dispatch({ type: 'CHANGE_SHOP_COUNT', count: count })
     }
   }
 }
 
-export default connect(null,mapDispatchToProps)(withRouter(detail))
+export default connect(null, mapDispatchToProps)(withRouter(detail))

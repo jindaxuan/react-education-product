@@ -50,9 +50,9 @@ class head extends React.Component {
             {/* <a onClick={()=>this.props.onChangeColor('blue')}>蓝色</a> */}
             {/* <a onClick={()=>this.props.onChangeColor('red')}>红色</a> */}
             {this.props.shopCarCountReducer.count}
-            <Link href={{pathname:'/car/carlist'}}>
+            <Link href={{ pathname: '/car/carlist' }}>
               <Badge count={this.props.shopCarCountReducer.count}>
-                <Icon style={{cursor:'pointer'}} type="shopping-cart" className={css.Icon} />
+                <Icon style={{ cursor: 'pointer' }} type='shopping-cart' className={css.Icon} />
               </Badge>
             </Link>
             {!userInfo.uid ? (
@@ -64,14 +64,20 @@ class head extends React.Component {
                   }}>
                   登录{' '}
                 </a>{' '}
-                <span> |</span> <a href='#'> 注册</a>
+                <span> |</span>{' '}
+                <Link href={{ pathname: '/account/login' }}>
+                  <a href='#'> 注册</a>
+                </Link>
               </span>
             ) : (
               <span>
-                <a href='#'>
-                  <Icon type='bell' theme='twoTone' />
-                  个人中心
-                </a>
+                {/* 登入以后显示 */}
+                <Link href={{pathname:'/mycenter/myorders'}}>
+                  <a  href='#'>
+                    <Icon type='bell' theme='twoTone' />
+                    个人中心
+                  </a>
+                </Link>
                 <a href='#'>
                   <img src='/static/img/asset-myImg.jpg' alt='' />
                   {userInfo.nick_name}
@@ -108,7 +114,7 @@ const mapDispatchToProps = dispatch => {
     }
   }
 }
-const mapStateToProps = (state) =>{
+const mapStateToProps = state => {
   return {
     ...state
   }
